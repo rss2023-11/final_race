@@ -36,13 +36,14 @@ def cd_sift_ransac(img, template):
 		bbox: ((x1, y1), (x2, y2)); the bounding box of the cone, unit in px
 				(x1, y1) is the bottom left of the bbox and (x2, y2) is the top right of the bbox
 	"""
+	grey_template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
 	# Minimum number of matching features
 	MIN_MATCH = 10
 	# Create SIFT
 	sift = cv2.xfeatures2d.SIFT_create()
 
 	# Compute SIFT on template and test image
-	kp1, des1 = sift.detectAndCompute(template,None)
+	kp1, des1 = sift.detectAndCompute(grey_template,None)
 	kp2, des2 = sift.detectAndCompute(img,None)
 
 	# Find matches
@@ -64,14 +65,28 @@ def cd_sift_ransac(img, template):
 		M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
 		matchesMask = mask.ravel().tolist()
 
-		h, w = template.shape
+		h, w = grey_template.shape
 		pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
 
 		########## YOUR CODE STARTS HERE ##########
+		bounding_quad = cv2.perspectiveTransform(pts, M)
+		xs = bounding_quad[:, :, 0].ravel().tolist()
+		ys = bounding_quad[:, :, 1].ravel().tolist()
+		xs.sort()
+		ys.sort()
 
-		x_min = y_min = x_max = y_max = 0
+		# The averaging between the two xs/ys is a hack to get a better intersection/union score
+		x_min = 2.4141 / 3.4141 * xs[0] + 1.0 / 3.4141 * xs[1]
+		x_max = 2.4141 / 3.4141 * xs[-1] + 1.0 / 3.4141 * xs[-2]
+		y_min = 2.4141 / 3.4141 * ys[0] + 1.0 / 3.4141 * ys[1]
+		y_max = 2.4141 / 3.4141 * ys[-1] + 1.0 / 3.4141 * ys[-2]
 
 		########### YOUR CODE ENDS HERE ###########
+		import matplotlib.pyplot as plt
+		
+		display_image = cv2.drawMatchesKnn(template, kp1, img, kp2, matches[-15:], None, flags=2)
+		plt.imshow(display_image)
+		plt.show()
 
 		# Return bounding box
 		return ((x_min, y_min), (x_max, y_max))
@@ -91,7 +106,8 @@ def cd_template_matching(img, template):
 		bbox: ((x1, y1), (x2, y2)); the bounding box of the cone, unit in px
 				(x1, y1) is the bottom left of the bbox and (x2, y2) is the top right of the bbox
 	"""
-	template_canny = cv2.Canny(template, 50, 200)
+	grey_template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+	template_canny = cv2.Canny(grey_template, 50, 200)
 
 	# Perform Canny Edge detection on test image
 	grey_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -116,9 +132,23 @@ def cd_template_matching(img, template):
 		# Use OpenCV template matching functions to find the best match
 		# across template scales.
 
+		# I tried out various methods (such as TM_CCORR_NORMED and TM_SQDIFF_NORMED) and
+		# TM_CCOEFF_NORMED seemed to work best
+		result = cv2.matchTemplate(img_canny, resized_template, cv2.TM_CCOEFF_NORMED)
+		min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+		if best_match is not None and max_val < best_match:
+			continue
+		best_match = max_val
+
 		# Remember to resize the bounding box using the highest scoring scale
 		# x1,y1 pixel will be accurate, but x2,y2 needs to be correctly scaled
-		bounding_box = ((0,0),(0,0))
+		x_min = max_loc[0]
+		y_min = max_loc[1]
+		x_max = x_min + w
+		y_max = y_min + h
+		bounding_box = ((x_min, y_min), (x_max, y_max))
+
 		########### YOUR CODE ENDS HERE ###########
 
+	
 	return bounding_box

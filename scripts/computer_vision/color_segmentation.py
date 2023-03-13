@@ -19,7 +19,7 @@ def image_print(img):
 	Helper function to print out images, for debugging. Pass them in as a list.
 	Press any key to continue.
 	"""
-	cv2.imshow("image", img)
+	cv2.imshow("Bounding Box", img)
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
@@ -35,9 +35,42 @@ def cd_color_segmentation(img, template):
 	"""
 	########## YOUR CODE STARTS HERE ##########
 
-	bounding_box = ((0,0),(0,0))
+	hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
+	# lower bound and upper bound for orange color
+	lower_bound = np.array([0,220,170])	 #try lowering V
+	upper_bound = np.array([65,255,255])
+
+	# find the colors within the boundaries
+	mask = cv2.inRange(hsv, lower_bound, upper_bound)
+ 
+	#define kernel size  
+	kernel = np.ones((4,4),np.uint8)
+
+	# Remove unnecessary noise from mask
+
+	mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+	mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+ 
+	# Segment only the detected region
+	# segmented_img = cv2.bitwise_and(img, img, mask=mask)
+ 
+	# Find contours from the mask
+	contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+	contours = contours[0] if len(contours) == 2 else contours[1]
+ 
+	#make a bounding box around the cone	
+ 
+	for entry in contours:
+		x,y,w,h = cv2.boundingRect(entry)
+  		cv2.rectangle(img, (x,y), (x+w,y+h), (0,0,255), 5)
+
+	# Option for displaying image with the bounding box
+	image_print(img)	
+
+	bounding_box=((x,y),(x+w, y+h+5))
+ 
 	########### YOUR CODE ENDS HERE ###########
-
-	# Return bounding box
+ 
+	# bounding_box=((0,0),(0,0))
 	return bounding_box

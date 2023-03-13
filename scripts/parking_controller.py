@@ -13,6 +13,7 @@ class ParkingController():
     Listens for a relative cone location and publishes control commands.
     Can be used in the simulator and on the real robot.
     """
+    CIRCLE_RADIUS = 1.0 # Radius of circle traced out when turning as fast as possible
     def __init__(self):
         rospy.Subscriber("/relative_cone", ConeLocation,
             self.relative_cone_callback)
@@ -36,40 +37,37 @@ class ParkingController():
 
         # notes on coordinate system: 
         relative_angle = math.atan2(self.relative_y, self.relative_x)
-        r = 1.0 # CONSTANT
+        r = self.CIRCLE_RADIUS
         a = self.parking_distance
         d = (self.relative_x ** 2 + self.relative_y ** 2) ** 0.5
+        distance_diff = d - self.parking_distance
         inner_threshold = (d ** 2 - a ** 2) / (2.5 * r * d)
         outer_threshold = inner_threshold * 1.5
         
-        angle = math.sin(abs(relative_angle))
+        # Check if we should switch between moving backwards and forwards
+        inclination = math.sin(abs(relative_angle))
         if self.am_moving_backwards:
-            self.am_moving_backwards = angle > inner_threshold
+            self.am_moving_backwards = inclination > inner_threshold
         else:
-            self.am_moving_backwards = angle > outer_threshold
-        if self.am_moving_backwards: #slowly turn backwards first if angle off
-            if self.relative_y > 0:
-                turn_direction = -1 #turn left backwards
-            else:
-                turn_direction = 1 #turn right backwards
-            velocity = -0.2
-            steering_angle = min(0.5, abs(relative_angle))*turn_direction * 5
+            self.am_moving_backwards = inclination > outer_threshold
 
-        else: #then drive forwards or backwards
-            if self.relative_y > 0:
-                turn_direction = 1 #turn right forwards
+        # Determine the correct direction to turn:
+        if self.am_moving_backwards:
+            steering_amount = min(0.5, abs(relative_angle) * 5)
+            steering_angle = -steering_amount if self.relative_y > 0 else steering_amount
+            if abs(self.relative_y) < 1e-2:
+                velocity = distance_diff * 5
+                velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
             else:
-                turn_direction = -1 #turn left forwards
-            steering_angle = min(0.5, abs(relative_angle))*turn_direction * 5
-            distance_diff = d - self.parking_distance
-            rospy.loginfo("x diff" + str(distance_diff))
-            move_forward = 1 if (distance_diff > 0) else -1
-            velocity = min(self.MAX_VELOCITY, abs(distance_diff)) * move_forward
-     
-        relative_distance = math.sqrt(self.relative_x**2 + self.relative_y**2)
-        
-        if abs(relative_distance - self.parking_distance) < 1e-3 and angle < 1e-2:
-            return # We're close enough, so just stop
+                velocity = -0.2
+        else:
+            steering_amount = min(0.5, abs(relative_angle) * 5)
+            steering_angle = steering_amount if self.relative_y > 0 else -steering_amount
+            velocity = distance_diff * 5
+            velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
+            
+        if abs(velocity) < 1e-4 and abs(steering_angle) < 1e-3:
+            return # Do nothing if we aren't making significant commands
 
         drive_cmd = AckermannDriveStamped()
         drive_cmd.header = Header()
@@ -78,6 +76,8 @@ class ParkingController():
         drive.steering_angle = steering_angle
         drive.speed = velocity
         rospy.loginfo("speed: " + str(drive.speed))
+        rospy.loginfo("distance: " + str(d))
+        rospy.loginfo("steering angle: " + str(drive.steering_angle))
         drive_cmd.drive = drive
         #################################
 

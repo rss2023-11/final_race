@@ -42,7 +42,7 @@ class ParkingController():
         inner_threshold = (d ** 2 - a ** 2) / (2.5 * r * d)
         outer_threshold = inner_threshold * 1.5
         
-        angle = abs(relative_angle)
+        angle = math.sin(abs(relative_angle))
         if self.am_moving_backwards:
             self.am_moving_backwards = angle > inner_threshold
         else:

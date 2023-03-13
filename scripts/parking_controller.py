@@ -34,9 +34,9 @@ class ParkingController():
         self.relative_y = msg.y_pos
 
         # notes on coordinate system: 
-        relative_angle = math.atan(self.relative_x/self.relative_y)
+        relative_angle = math.atan2(self.relative_y, self.relative_x)
         if(abs(relative_angle) > 0.2): #slowly turn backwards first if angle off
-            if(relative_angle>0 and self.relative_y>0 or relative_angle<0 and self.relative_y<0):
+            if(self.relative_y>0):
                 turn_direction = -1 #turn left backwards
             else:
                 turn_direction = 1 #turn right backwards

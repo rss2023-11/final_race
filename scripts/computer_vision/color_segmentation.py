@@ -35,6 +35,10 @@ def cd_color_segmentation(img, template):
 	"""
 	########## YOUR CODE STARTS HERE ##########
 
+#uncomment for line following
+	y=268
+ 	h=43
+        
 	hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 	# lower bound and upper bound for orange color
@@ -60,15 +64,27 @@ def cd_color_segmentation(img, template):
 	contours = contours[0] if len(contours) == 2 else contours[1]
  
 	#make a bounding box around the cone	
- 
 	for entry in contours:
-		x,y,w,h = cv2.boundingRect(entry)
-  		cv2.rectangle(img, (x,y), (x+w,y+h), (0,0,255), 5)
+		#uncomment for cone finding
+		# x,y,w,h = cv2.boundingRect(entry)
+		# cv2.rectangle(img, (x,y), (x+w,y+h+5), (0,0,255), 5)
+  
+  		#uncomment for line following
+		x,y_,w,h_ = cv2.boundingRect(entry)
+		if (y_>y and y_<y+h) or (y_+h_>y and y_+h_<y+h) or (y_<y and y_+h_>y+h):
+			cv2.rectangle(img, (x,y), (x+w,y+h+5), (0,0,255), 5)
+		else:
+			x=None
+			w=None
 
 	# Option for displaying image with the bounding box
 	image_print(img)	
 
-	bounding_box=((x,y),(x+w, y+h+5))
+	try:
+		bounding_box=((x,y),(x+w, y+h+5))
+	except:
+		print("no bounding box!")
+		bounding_box=((0,0),(0,0))
  
 	########### YOUR CODE ENDS HERE ###########
  

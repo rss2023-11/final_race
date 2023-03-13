@@ -27,6 +27,7 @@ class ParkingController():
         self.MAX_VELOCITY = 1
         self.relative_x = 0
         self.relative_y = 0
+        self.am_moving_backwards = True
         
 
     def relative_cone_callback(self, msg):
@@ -35,23 +36,41 @@ class ParkingController():
 
         # notes on coordinate system: 
         relative_angle = math.atan2(self.relative_y, self.relative_x)
-        if(abs(relative_angle) > 0.2): #slowly turn backwards first if angle off
-            if(self.relative_y>0):
+        r = 1.0 # CONSTANT
+        a = self.parking_distance
+        d = (self.relative_x ** 2 + self.relative_y ** 2) ** 0.5
+        inner_threshold = (d ** 2 - a ** 2) / (2.5 * r * d)
+        outer_threshold = inner_threshold * 1.5
+        
+        angle = abs(relative_angle)
+        if self.am_moving_backwards:
+            self.am_moving_backwards = angle > inner_threshold
+        else:
+            self.am_moving_backwards = angle > outer_threshold
+        if self.am_moving_backwards: #slowly turn backwards first if angle off
+            if self.relative_y > 0:
                 turn_direction = -1 #turn left backwards
             else:
                 turn_direction = 1 #turn right backwards
-            velocity = - 0.2
+            velocity = -0.2
             steering_angle = min(0.5, abs(relative_angle))*turn_direction * 5
 
         else: #then drive forwards or backwards
-            x_diff = self.relative_x - self.parking_distance
-            rospy.loginfo("x diff" + str(x_diff))
-            move_forward = 1 if (x_diff > 0) else -1
-            velocity = min(self.MAX_VELOCITY, abs(x_diff)) * move_forward
-            steering_angle = 0
+            if self.relative_y > 0:
+                turn_direction = 1 #turn right forwards
+            else:
+                turn_direction = -1 #turn left forwards
+            steering_angle = min(0.5, abs(relative_angle))*turn_direction * 5
+            distance_diff = d - self.parking_distance
+            rospy.loginfo("x diff" + str(distance_diff))
+            move_forward = 1 if (distance_diff > 0) else -1
+            velocity = min(self.MAX_VELOCITY, abs(distance_diff)) * move_forward
      
         relative_distance = math.sqrt(self.relative_x**2 + self.relative_y**2)
         
+        if abs(relative_distance - self.parking_distance) < 1e-3 and angle < 1e-2:
+            return # We're close enough, so just stop
+
         drive_cmd = AckermannDriveStamped()
         drive_cmd.header = Header()
         drive = AckermannDrive()

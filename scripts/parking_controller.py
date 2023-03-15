@@ -13,7 +13,7 @@ class ParkingController():
     Listens for a relative cone location and publishes control commands.
     Can be used in the simulator and on the real robot.
     """
-    CIRCLE_RADIUS = 1.0 # Radius of circle traced out when turning as fast as possible
+    CIRCLE_RADIUS = 0.9 # Radius of circle traced out when turning as fast as possible
     def __init__(self):
         rospy.Subscriber("/relative_cone", ConeLocation,
             self.relative_cone_callback)
@@ -41,8 +41,8 @@ class ParkingController():
         a = self.parking_distance
         d = (self.relative_x ** 2 + self.relative_y ** 2) ** 0.5
         distance_diff = d - self.parking_distance
-        inner_threshold = (d ** 2 - a ** 2) / (2.5 * r * d)
-        outer_threshold = inner_threshold * 1.5
+        outer_threshold = (d ** 2 - a ** 2) / (2.0 * r * d)
+        inner_threshold = outer_threshold / 1.5
         
         # Check if we should switch between moving backwards and forwards
         inclination = math.sin(abs(relative_angle))

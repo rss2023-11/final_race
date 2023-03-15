@@ -1,8 +1,8 @@
 <launch>
-
   <!-- Launch the parking controller on the real robot. Launches safety controller, controller node, cone detection node, and the homography transformer -->
   <!-- Edit this to launch your safety controller you implemented in Lab 3! -->
-  <node pkg="wall_follower" name="safety_controller" type="safety_controller.py" output="screen">
+  <node pkg="safety_controller" name="safety_controller" type="safety_controller_publisher.py" output="screen">
+    <rosparam command="load" file="$(find visual_servoing)/params.yaml"/>
   </node>
 
   <node pkg="visual_servoing" name="parking_controller" type="parking_controller.py" output="screen">
@@ -10,6 +10,7 @@
   </node>
 
   <node pkg="visual_servoing" name="cone_detector" type="cone_detector.py" output="screen">
+    <!-- <param name="drive_topic" value="/zed/zed_node/rgb/image_rect_color" /> -->
   </node>
 
   <node pkg="visual_servoing" name="homography_transformer" type="homography_transformer.py" output="screen">

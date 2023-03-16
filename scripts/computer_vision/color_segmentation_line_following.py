@@ -72,7 +72,7 @@ def cd_color_segmentation(img):
 			w=None
 
 	# Option for displaying image with the bounding box
-	image_print(img)	
+	# image_print(img)	
 
 	try:
 		bounding_box=((x,y),(x+w, y+h+5))

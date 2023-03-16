@@ -50,14 +50,14 @@ class ConeDetector():
         # image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         
         cv2.rectangle(image, bounding_box[0], bounding_box[1], (0,0,255), 2)
-        bounding_box_img=self.bridge.cv2_to_imgmsg(image, "bgr8")
-        self.debug_pub.publish(debug_msg)
+        #bounding_box_img=self.bridge.cv2_to_imgmsg(image, "bgr8")
+        #self.debug_pub.publish(debug_msg)
         
         self.cone_pub.publish(center)
         
         #################################
 
-        image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+        #image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
 
         # debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
         # self.debug_pub.publish(debug_msg)

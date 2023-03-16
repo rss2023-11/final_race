@@ -65,7 +65,7 @@ def cd_color_segmentation(img):
 		cv2.rectangle(img, (x,y), (x+w,y+h+5), (0,0,255), 5)
 
 	# Option for displaying image with the bounding box
-	image_print(img)	
+        #image_print(img)	
 
 	try:
 		bounding_box=((x,y),(x+w, y+h+5))

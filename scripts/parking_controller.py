@@ -75,9 +75,9 @@ class ParkingController():
 
         drive.steering_angle = steering_angle
         drive.speed = velocity
-        rospy.loginfo("speed: " + str(drive.speed))
-        rospy.loginfo("distance: " + str(d))
-        rospy.loginfo("steering angle: " + str(drive.steering_angle))
+        #rospy.loginfo("speed: " + str(drive.speed))
+        #rospy.loginfo("distance: " + str(d))
+        #rospy.loginfo("steering angle: " + str(drive.steering_angle))
         drive_cmd.drive = drive
         #################################
 

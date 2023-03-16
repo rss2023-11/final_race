@@ -35,8 +35,14 @@ def cd_color_segmentation(img):
 	"""
 	########## YOUR CODE STARTS HERE ##########
 
-	y=268
- 	h=43
+	# y=268
+ 	# h=43
+  
+	for i in range(0,640):
+		for i in range(0,268):
+			img[i][j]=np.array([0,0,0])
+		for i in range(311, 360):
+			img[i][j]=np.array([0,0,0])
         
 	hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -64,12 +70,12 @@ def cd_color_segmentation(img):
  
 	#make a bounding box around the cone	
 	for entry in contours:
-		x,y_,w,h_ = cv2.boundingRect(entry)
-		if (y_>y and y_<y+h) or (y_+h_>y and y_+h_<y+h) or (y_<y and y_+h_>y+h):
-			cv2.rectangle(img, (x,y), (x+w,y+h+5), (0,0,255), 5)
-		else:
-			x=None
-			w=None
+		x,y,w,h = cv2.boundingRect(entry)
+		# if (y_>y and y_<y+h) or (y_+h_>y and y_+h_<y+h) or (y_<y and y_+h_>y+h):
+		cv2.rectangle(img, (x,y), (x+w,y+h+5), (0,0,255), 5)
+		# else:
+		# 	x=None
+		# 	w=None
 
 	# Option for displaying image with the bounding box
 	# image_print(img)	

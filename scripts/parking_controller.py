@@ -24,7 +24,7 @@ class ParkingController():
         self.error_pub = rospy.Publisher("/parking_error",
             ParkingError, queue_size=10)
 
-        self.parking_distance = .75 # meters; try playing with this number!
+        self.parking_distance = .15 # meters; try playing with this number!
         self.MAX_VELOCITY = 1
         self.relative_x = 0
         self.relative_y = 0
@@ -41,7 +41,7 @@ class ParkingController():
         a = self.parking_distance
         d = (self.relative_x ** 2 + self.relative_y ** 2) ** 0.5
         distance_diff = d - self.parking_distance
-        outer_threshold = (d ** 2 - a ** 2) / (2.0 * r * d)
+        outer_threshold = (d ** 2 - a ** 2) / (1.5 * r * d)
         inner_threshold = outer_threshold / 1.5
         
         # Check if we should switch between moving backwards and forwards
@@ -53,17 +53,17 @@ class ParkingController():
 
         # Determine the correct direction to turn:
         if self.am_moving_backwards:
-            steering_amount = min(0.5, abs(relative_angle) * 5)
+            steering_amount = min(0.5, abs(relative_angle))
             steering_angle = -steering_amount if self.relative_y > 0 else steering_amount
             if abs(self.relative_y) < 1e-2:
-                velocity = distance_diff * 5
+                velocity = distance_diff
                 velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
             else:
                 velocity = -0.2
         else:
-            steering_amount = min(0.5, abs(relative_angle) * 5)
+            steering_amount = min(0.5, abs(relative_angle))
             steering_angle = steering_amount if self.relative_y > 0 else -steering_amount
-            velocity = distance_diff * 5
+            velocity = distance_diff
             velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
             
         if abs(velocity) < 1e-4 and abs(steering_angle) < 1e-3:

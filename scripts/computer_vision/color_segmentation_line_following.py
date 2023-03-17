@@ -23,7 +23,7 @@ def image_print(img):
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
-def cd_color_segmentation(img, blah):
+def cd_color_segmentation(img, blah=None):
 	"""
 	Implement the cone detection using color segmentation algorithm
 	Input:
@@ -40,29 +40,27 @@ def cd_color_segmentation(img, blah):
   
 	height=len(img)
 	width=len(img[0])
-  
-	for j in range(0,width):
-		for i in range(0,int(height*0.5)):
-			img[i][j]=np.array([0,0,0])
-		for i in range(int(height*0.8), 360):
-			img[i][j]=np.array([0,0,0])
+        cv2.rectangle(img, (0, 0), (width, height // 2), (0, 0, 0), -1)
+        #print(np.mean(img))
+	cv2.rectangle(img, (0, int(height * 0.8)), (width, height), (0, 0, 0), -1)
         
 	hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        #print(np.mean(hsv[0, :, :]))
 
 	# lower bound and upper bound for orange color
-	lower_bound = np.array([0,220,170])	 #try lowering V
-	upper_bound = np.array([65,255,255])
+	lower_bound = np.array([0,140,170])	 #try lowering V
+	upper_bound = np.array([65,256,256])
 
 	# find the colors within the boundaries
 	mask = cv2.inRange(hsv, lower_bound, upper_bound)
- 
+        #print(np.sum(mask))
 	#define kernel size  
 	kernel = np.ones((4,4),np.uint8)
 
 	# Remove unnecessary noise from mask
 
-	mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-	mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+	#mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+	#mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
  
 	# Segment only the detected region
 	# segmented_img = cv2.bitwise_and(img, img, mask=mask)
@@ -70,12 +68,12 @@ def cd_color_segmentation(img, blah):
 	# Find contours from the mask
 	contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 	contours = contours[0] if len(contours) == 2 else contours[1]
- 
+        x, y, w, h = None, None, None, None
 	#make a bounding box around the cone	
 	for entry in contours:
 		x,y,w,h = cv2.boundingRect(entry)
 		# if (y_>y and y_<y+h) or (y_+h_>y and y_+h_<y+h) or (y_<y and y_+h_>y+h):
-		cv2.rectangle(img, (x,y), (x+w,y), (0,0,255), 5)
+		cv2.rectangle(img, (x,y), (x+w,y+h), (0,0,255), 5)
 		# else:
 		# 	x=None
 		# 	w=None
@@ -84,10 +82,9 @@ def cd_color_segmentation(img, blah):
 	# image_print(img)	
 
 	try:
-		bounding_box=((x,y),(x+w, y+h))
-		print("try: ", x,y, w, h)
-	except:
-		# print("no bounding box!")
+		bounding_box=((x,y),(x+w, y+h+5))
+	except Exception as e:
+               	print("no bounding box!")
 		bounding_box=((0,0),(0,0))
  
 	########### YOUR CODE ENDS HERE ###########

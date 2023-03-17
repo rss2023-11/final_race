@@ -53,7 +53,7 @@ class ParkingController():
             self.am_moving_backwards = inclination > outer_threshold
 
         # Determine the correct direction to turn:
-        if False:#self.am_moving_backwards:
+        if self.am_moving_backwards:
             steering_amount = min(0.5, abs(relative_angle))
             steering_angle = -steering_amount if self.relative_y > 0 else steering_amount
             if abs(self.relative_y) < 1e-2:
@@ -65,7 +65,6 @@ class ParkingController():
             steering_amount = min(0.5, abs(relative_angle))
             steering_angle = steering_amount if self.relative_y > 0 else -steering_amount
             velocity = distance_diff
-            velocity = 1.0
             velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
             
         if abs(velocity) < 1e-4 and abs(steering_angle) < 1e-3:
@@ -76,7 +75,7 @@ class ParkingController():
         drive = AckermannDrive()
 
         drive.steering_angle = steering_angle
-        drive.speed = 1.0
+        drive.speed = velocity
         #rospy.loginfo("speed: " + str(drive.speed))
         #rospy.loginfo("distance: " + str(d))
         #rospy.loginfo("steering angle: " + str(drive.steering_angle))

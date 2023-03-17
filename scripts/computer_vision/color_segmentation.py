@@ -23,7 +23,7 @@ def image_print(img):
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
-def cd_color_segmentation(img, template):
+def cd_color_segmentation(img, blah):
 	"""
 	Implement the cone detection using color segmentation algorithm
 	Input:
@@ -35,9 +35,17 @@ def cd_color_segmentation(img, template):
 	"""
 	########## YOUR CODE STARTS HERE ##########
 
-#uncomment for line following
-	y=268
- 	h=43
+	# y=268
+ 	# h=43
+  
+	height=len(img)
+	width=len(img[0])
+  
+	for j in range(0,width):
+		for i in range(0,int(height*0.5)):
+			img[i][j]=np.array([0,0,0])
+		for i in range(int(height*0.8), 360):
+			img[i][j]=np.array([0,0,0])
         
 	hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -65,17 +73,12 @@ def cd_color_segmentation(img, template):
  
 	#make a bounding box around the cone	
 	for entry in contours:
-		#uncomment for cone finding
-		# x,y,w,h = cv2.boundingRect(entry)
-		# cv2.rectangle(img, (x,y), (x+w,y+h+5), (0,0,255), 5)
-  
-  		#uncomment for line following
-		x,y_,w,h_ = cv2.boundingRect(entry)
-		if (y_>y and y_<y+h) or (y_+h_>y and y_+h_<y+h) or (y_<y and y_+h_>y+h):
-			cv2.rectangle(img, (x,y), (x+w,y+h+5), (0,0,255), 5)
-		else:
-			x=None
-			w=None
+		x,y,w,h = cv2.boundingRect(entry)
+		# if (y_>y and y_<y+h) or (y_+h_>y and y_+h_<y+h) or (y_<y and y_+h_>y+h):
+		cv2.rectangle(img, (x,y), (x+w,y+h), (0,0,255), 5)
+		# else:
+		# 	x=None
+		# 	w=None
 
 	# Option for displaying image with the bounding box
 	image_print(img)	

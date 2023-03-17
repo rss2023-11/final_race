@@ -75,7 +75,7 @@ def cd_color_segmentation(img, blah):
 	for entry in contours:
 		x,y,w,h = cv2.boundingRect(entry)
 		# if (y_>y and y_<y+h) or (y_+h_>y and y_+h_<y+h) or (y_<y and y_+h_>y+h):
-		cv2.rectangle(img, (x,y), (x+w,y+h), (0,0,255), 5)
+		cv2.rectangle(img, (x,y), (x+w,y), (0,0,255), 5)
 		# else:
 		# 	x=None
 		# 	w=None
@@ -84,9 +84,10 @@ def cd_color_segmentation(img, blah):
 	# image_print(img)	
 
 	try:
-		bounding_box=((x,y),(x+w, y+h+5))
+		bounding_box=((x,y),(x+w, y+h))
+		print("try: ", x,y, w, h)
 	except:
-		print("no bounding box!")
+		# print("no bounding box!")
 		bounding_box=((0,0),(0,0))
  
 	########### YOUR CODE ENDS HERE ###########

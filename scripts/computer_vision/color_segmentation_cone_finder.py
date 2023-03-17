@@ -71,7 +71,7 @@ def cd_color_segmentation(img):
 		bounding_box=((x,y),(x+w, y+h+5))
 		print("try: ", x,y, w, h)
 	except:
-		print("no bounding box!")
+		# print("no bounding box!")
 		bounding_box=((0,0),(0,0))
  
 	########### YOUR CODE ENDS HERE ###########

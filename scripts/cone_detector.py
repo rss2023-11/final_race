@@ -63,7 +63,10 @@ class ConeDetector():
 
         # debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
         else:
-            self.debug_pub.publish(image)
+            bounding_box_img=self.bridge.cv2_to_imgmsg(image, "bgr8")
+            self.debug_pub.publish(bounding_box_img)
+            print("no bounding box!")
+            
 
 
 if __name__ == '__main__':

@@ -1,8 +1,5 @@
 import cv2
 import numpy as np
-import math
-import pdb
-from scipy import signal
 
 #################### X-Y CONVENTIONS #########################
 # 0,0  X  > > > > >
@@ -21,7 +18,6 @@ def image_print(img):
 	Helper function to print out images, for debugging. Pass them in as a list.
 	Press any key to continue.
 	"""
-
 	cv2.imshow("Bounding Box", img)
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
@@ -74,14 +70,15 @@ def cd_color_segmentation(img):
 
 	# dst: Output of the edge detector. It should be a grayscale image (although in fact it is a binary one)
 	# rho : The resolution of the parameter r in pixels. We use 1 pixel.
-	# theta: The resolution of the parameter θ in radians. We use 1 degree (CV_PI/180)
+	# theta: The resolution of the parameter theta in radians. We use 1 degree (CV_PI/180)
 	# threshold: The minimum number of intersections to "*detect*" a line
 	# minLineLength: The minimum number of points that can form a line. Lines with less than this number of points are disregarded.
 	# maxLineGap: The maximum gap between two points to be considered in the same line.
 
 	lines = cv2.HoughLinesP(mask, 1, np.pi / 180, 50, 10, 20)
 			# cv2.HoughLinesP(E,Rres,Thetares,Threshold,minLineLength,maxLineGap)
-	
+	dots1 = []
+	dots2 = []
 	# Iterate over segments
     # Draw the lines
 	if lines is not None:
@@ -93,20 +90,25 @@ def cd_color_segmentation(img):
 			thres_dist = 75
 			dist = (dx**2+dy**2)**.5
 			if dx!=0 and dy!=0 and dist>thres_dist and abs(1-abs((dy/dx))) < 5 and abs(1-abs((dx/dy))) < 5: # this is a random tan(theta) threshold lol
-
-				cv2.line(image,(x1,y1), (x2,y2),(0,255,0),2)
-
 				# calculate rho theta of this pair
 				m = dy / dx
 				theta = np.arctan(m)
 				rho = x1 * np.cos(theta) + y1 * np.sin(theta)
 				thresholded_lines.append((rho,theta))
-
+				
+				# separates the line segments into left and right side
 				if m<0:
 					line1.append((rho,theta))
+					dots1.append((x1,y1))
+					dots1.append((x2,y2))
+					cv2.line(img,(x1,y1), (x2,y2),(0,255,0),2)
 				else:
 					line2.append((rho,theta))
+					dots2.append((x1,y1))
+					dots2.append((x2,y2))
+					cv2.line(img,(x1,y1), (x2,y2),(0,255,0),2)
 	
+
 	rho1 = np.median([x[0] for x in line1])
 	theta1 = np.median([x[1] for x in line1]) 
 	rho2 = np.median([x[0] for x in line2]) 				
@@ -115,54 +117,30 @@ def cd_color_segmentation(img):
 	print(two_lines)
 		# # Maintain a simples lookup list for points
 		# lines_list.append([(x1,y1),(x2,y2)])
+	dot1 = dots1[0]
+	dot2 = dots2[0]
 
-	# hough_space = np.zeros((180, mask.shape[1]))
-	# for line in thresholded_lines:
-	# 	rho, theta = line
-	# 	for x in range(mask.shape[1]):
-	# 		y = int((rho - x*np.cos(theta)) / np.sin(theta))
-	# 		if y >= 0 and y < mask.shape[0]:
-	# 			hough_space[int(np.degrees(theta)), x] += mask[y, x]
-
-	# peaks, _ = signal.find_peaks(hough_space.flatten())
-	# # https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks.html
-
-	# # Extract the parameters for the two peaks with the highest values
-	# peak_values = hough_space.flatten()[peaks]
-	# peak_indices = peak_values.argsort()[-2:][::-1]
-	# peak_thetas, peak_rhos = np.unravel_index(peaks[peak_indices], hough_space.shape)
-	# print(peak_thetas, peak_rhos)
-	# Draw the two lines on the original image
-	# for theta, rho in zip(peak_thetas, peak_rhos):
-	first = True
-	for theta, rho in two_lines:
-		a = np.cos(theta) #x
-		b = np.sin(theta) #y
-		x0 = a*rho
-		y0 = b*rho
-		x1 = 0
-		y1 = int(height - rho/a)
-		x2 = int(rho/b)
-		y2 = height
-
-		# x1 = int(x0 + 2000*(-b))
-		# y1 = int(height - (y0+2000*a))
-		# x2 = int(x0 - 2000*(-b))
-		# y2 = int(height - (y0-2000*a))
-		if first:
-			cv2.line(img, (x1, y1), (x2, y2), (255, 0, 0), 2) # blue
-			first = False
-		else:
-			cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2) # red
+	for dot in dots1:
+		if dot[0]>dot1[0]:
+			dot1=dot
+	for dot in dots2:
+		if dot[0]<dot2[0]:
+			dot2=dot
+	# dot1 = (max(x[0] for x in dots1), min(x[1] for x in dots1))
+	# dot2 = (min(x[0] for x in dots2), min(x[1] for x in dots2))
+	goal = (int((dot1[0]+dot2[0])/2), int((dot1[1]+dot2[1])/2))
+	# cv2.circle(img, dot1, 5, (255,0,0), 3)
+	# cv2.circle(img, dot2, 5, (255,0,0), 3)
+	cv2.circle(img, goal, 10, (255, 0, 255), 3)
 
 	# Save the result image
-	cv2.imwrite('detectedLines.png',image)
+	cv2.imwrite('detectedLines.png',img)
+
+	return goal
 
 
-
-
-file = ".\johnson\IMG_20230426_170554291.jpg"
-file = ".\johnson\IMG_20230426_170926916.jpg"
+# file = ".\johnson\IMG_20230426_170554291.jpg"
+# file = ".\johnson\IMG_20230426_170926916.jpg"
 # file = ".\johnson\IMG_20230426_170637041.jpg" # side straight
 file = ".\johnson\IMG_20230426_171050506.jpg" #curve
 image = cv2.imread(file)

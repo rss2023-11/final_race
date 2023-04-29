@@ -11,7 +11,7 @@ from geometry_msgs.msg import Point #geometry_msgs not in CMake file
 from visual_servoing.msg import ConeLocationPixel
 
 # import your color segmentation algorithm; call this function in ros_image_callback!
-from computer_vision.color_segmentation_line_following import cd_color_segmentation
+from computer_vision.color_segmentation_trackfinder import cd_color_segmentation
 
 
 class ConeDetector():
@@ -42,15 +42,16 @@ class ConeDetector():
         bridge = CvBridge()
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         
-        bounding_box=cd_color_segmentation(image)
-        if bounding_box!=((0,0),(0,0)):
+        goal = cd_color_segmentation(image)
+        if goal!=None: # sanity check 
             center=ConeLocationPixel()
-            center.v=bounding_box[1][1]
-            center.u=(bounding_box[0][0]+bounding_box[1][0])/2
+            center.v=goal
+            center.u=goal[0]
             
             # image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
             
-            cv2.rectangle(image, bounding_box[0], bounding_box[1], (0,0,255), 2)
+            cv2.circle(image, center, 10, (255, 0, 255), 3)
+
             bounding_box_img=self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(bounding_box_img)
             
@@ -63,7 +64,7 @@ class ConeDetector():
 
         # debug_msg = self.bridge.cv2_to_imgmsg(image, "bgr8")
         else:
-            print("bounding_box is", bounding_box)
+            print("goal is", center)
             bounding_box_img=self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(bounding_box_img)
 

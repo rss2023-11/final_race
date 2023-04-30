@@ -37,42 +37,11 @@ class ParkingController():
 
         # notes on coordinate system: 
         relative_angle = math.atan2(self.relative_y, self.relative_x)
-        r = self.CIRCLE_RADIUS
-        a = self.parking_distance
-        d = (self.relative_x ** 2 + self.relative_y ** 2) ** 0.5
-        print("distance measured:", d)
-        distance_diff = d - self.parking_distance
-        outer_threshold = (d ** 2 - a ** 2) / (1.5 * r * d)
-        inner_threshold = outer_threshold / 1.5
-        
-        # Check if we should switch between moving backwards and forwards
-        inclination = math.sin(abs(relative_angle))
-        if self.am_moving_backwards:
-            self.am_moving_backwards = inclination > inner_threshold
-        else:
-            self.am_moving_backwards = inclination > outer_threshold
 
-        # Determine the correct direction to turn:
-        if False:#self.am_moving_backwards:
-            steering_amount = min(0.5, abs(relative_angle))
-            steering_angle = -steering_amount if self.relative_y > 0 else steering_amount
-            if abs(self.relative_y) < 1e-2:
-                velocity = distance_diff
-                velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
-            else:
-                velocity = -0.2
-        else:
-            steering_amount = min(0.5, abs(relative_angle))
-            steering_angle = steering_amount if self.relative_y > 0 else -steering_amount
-            velocity = distance_diff
-            velocity = 1.0
-            # velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
+
+        steering_amount = min(0.5, abs(relative_angle))
+        steering_angle = steering_amount if self.relative_y > 0 else -steering_amount
        #  rospy.logwarn(steering_amount)
-       #  rospy.logwarn(velocity)
-        if abs(velocity) < 1e-4 and abs(steering_angle) < 1e-3:
-
-         #   rospy.logwarn("NOT DRIVING")
-            return # Do nothing if we aren't making significant commands
 
         drive_cmd = AckermannDriveStamped()
         drive_cmd.header = Header()
@@ -81,16 +50,8 @@ class ParkingController():
         drive.steering_angle = steering_angle
         drive.speed = 1.0
         #rospy.loginfo("speed: " + str(drive.speed))
-        #rospy.loginfo("distance: " + str(d))
         #rospy.loginfo("steering angle: " + str(drive.steering_angle))
         drive_cmd.drive = drive
-        #################################
-
-        # YOUR CODE HERE
-        # Use relative position and your control law to set drive_cmd
-
-        #################################
-
         rospy.logwarn(drive_cmd)
         self.drive_pub.publish(drive_cmd)
         self.error_publisher()

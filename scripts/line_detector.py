@@ -42,8 +42,8 @@ class ConeDetector():
         bridge = CvBridge()
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         
-        goal = (int(len(image[0])/2),int(len(image)/2))
-        # goal = cd_color_segmentation(image)
+        # goal = (int(len(image[0])/2),int(len(image)/2))
+        goal = cd_color_segmentation(image)
         if goal!=None: # sanity check 
             center=ConeLocationPixel()
             center.v=goal[1]

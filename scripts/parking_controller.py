@@ -4,7 +4,7 @@ import rospy
 import numpy as np
 import math
 from std_msgs.msg import Header
-from visual_servoing.msg import ConeLocation, ParkingError
+from final_race.msg import ConeLocation, ParkingError
 from ackermann_msgs.msg import AckermannDriveStamped, AckermannDrive
 
 class ParkingController():

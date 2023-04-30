@@ -8,7 +8,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point #geometry_msgs not in CMake file
-from visual_servoing.msg import ConeLocationPixel
+from final_race.msg import ConeLocationPixel
 
 # import your color segmentation algorithm; call this function in ros_image_callback!
 from computer_vision.color_segmentation_trackfinder import cd_color_segmentation

@@ -18,7 +18,7 @@ class ParkingController():
         rospy.Subscriber("/relative_cone", ConeLocation,
             self.relative_cone_callback)
 
-        DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
+        DRIVE_TOPIC = rospy.get_param("~drive_topic", "/vesc/ackermann_cmd_mux/input/navigation") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC,
             AckermannDriveStamped, queue_size=10)
         self.error_pub = rospy.Publisher("/parking_error",
@@ -66,9 +66,12 @@ class ParkingController():
             steering_angle = steering_amount if self.relative_y > 0 else -steering_amount
             velocity = distance_diff
             velocity = 1.0
-            velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
-            
+            # velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
+       #  rospy.logwarn(steering_amount)
+       #  rospy.logwarn(velocity)
         if abs(velocity) < 1e-4 and abs(steering_angle) < 1e-3:
+
+         #   rospy.logwarn("NOT DRIVING")
             return # Do nothing if we aren't making significant commands
 
         drive_cmd = AckermannDriveStamped()
@@ -88,6 +91,7 @@ class ParkingController():
 
         #################################
 
+        rospy.logwarn(drive_cmd)
         self.drive_pub.publish(drive_cmd)
         self.error_publisher()
 

@@ -35,7 +35,7 @@ def cd_color_segmentation(img):
 	########## YOUR CODE STARTS HERE ##########
     
 	# only keep tracks visible
-	non_track_ratio = 0.4 # TODO Needs actual ratio from robot
+        non_track_ratio = 0.5 # TODO Needs actual ratio from robot
 	height=len(img)
 	width=len(img[0])
 	cv2.rectangle(img, (0, 0), (width, int(height * non_track_ratio)), (0, 0, 0), -1)
@@ -142,13 +142,13 @@ def cd_color_segmentation(img):
 # file = ".\johnson\IMG_20230426_170554291.jpg"
 # file = ".\johnson\IMG_20230426_170926916.jpg"
 # file = ".\johnson\IMG_20230426_170637041.jpg" # side straight
-file = ".\johnson\IMG_20230426_171050506.jpg" #curve
-image = cv2.imread(file)
-if image is None:
-     print("Check file path")
+# file = ".\johnson\IMG_20230426_171050506.jpg" #curve
+# image = cv2.imread(file)
+# if image is None:
+  #    print("Check file path")
     
 # for smaller visualization
-image = cv2.pyrDown(image)
+# image = cv2.pyrDown(image)
 
 # print(image)
-cd_color_segmentation(image)
+# cd_color_segmentation(image)

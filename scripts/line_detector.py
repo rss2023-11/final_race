@@ -45,12 +45,16 @@ class ConeDetector():
         goal = cd_color_segmentation(image)
         if goal!=None: # sanity check 
             center=ConeLocationPixel()
-            center.v=goal
+            center.v=goal[1]
             center.u=goal[0]
             
             # image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
-            
-            cv2.circle(image, center, 10, (255, 0, 255), 3)
+            non_track_ratio = 0.5
+            height=len(image)
+            width=len(image)
+            cv2.rectangle(image, (0,0),(width,int(height*non_track_ratio)), (0,0,0), -1)
+
+            cv2.circle(image, goal, 10, (255, 0, 255), 3)
 
             bounding_box_img=self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(bounding_box_img)

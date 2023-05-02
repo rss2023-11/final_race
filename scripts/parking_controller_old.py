@@ -4,7 +4,7 @@ import rospy
 import numpy as np
 import math
 from std_msgs.msg import Header
-from final_race.msg import ConeLocation, ParkingError
+from visual_servoing.msg import ConeLocation, ParkingError
 from ackermann_msgs.msg import AckermannDriveStamped, AckermannDrive
 
 class ParkingController():
@@ -18,7 +18,7 @@ class ParkingController():
         rospy.Subscriber("/relative_cone", ConeLocation,
             self.relative_cone_callback)
 
-        DRIVE_TOPIC = rospy.get_param("~drive_topic", "/vesc/ackermann_cmd_mux/input/navigation") # set in launch file; different for simulator vs racecar
+        DRIVE_TOPIC = rospy.get_param("~drive_topic") # set in launch file; different for simulator vs racecar
         self.drive_pub = rospy.Publisher(DRIVE_TOPIC,
             AckermannDriveStamped, queue_size=10)
         self.error_pub = rospy.Publisher("/parking_error",
@@ -37,22 +37,56 @@ class ParkingController():
 
         # notes on coordinate system: 
         relative_angle = math.atan2(self.relative_y, self.relative_x)
+        r = self.CIRCLE_RADIUS
+        a = self.parking_distance
+        d = (self.relative_x ** 2 + self.relative_y ** 2) ** 0.5
+        print("distance measured:", d)
+        distance_diff = d - self.parking_distance
+        outer_threshold = (d ** 2 - a ** 2) / (1.5 * r * d)
+        inner_threshold = outer_threshold / 1.5
+        
+        # Check if we should switch between moving backwards and forwards
+        inclination = math.sin(abs(relative_angle))
+        if self.am_moving_backwards:
+            self.am_moving_backwards = inclination > inner_threshold
+        else:
+            self.am_moving_backwards = inclination > outer_threshold
 
-
-        steering_amount = min(0.10, abs(relative_angle/2))
-        steering_angle = steering_amount if self.relative_y > 0 else -steering_amount
-       #  rospy.logwarn(steering_amount)
+        # Determine the correct direction to turn:
+        if self.am_moving_backwards:
+            steering_amount = min(0.5, abs(relative_angle))
+            steering_angle = -steering_amount if self.relative_y > 0 else steering_amount
+            if abs(self.relative_y) < 1e-2:
+                velocity = distance_diff
+                velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
+            else:
+                velocity = -0.2
+        else:
+            steering_amount = min(0.5, abs(relative_angle))
+            steering_angle = steering_amount if self.relative_y > 0 else -steering_amount
+            velocity = distance_diff
+            velocity = np.clip(velocity, -0.2, self.MAX_VELOCITY)
+            
+        if abs(velocity) < 1e-4 and abs(steering_angle) < 1e-3:
+            return # Do nothing if we aren't making significant commands
 
         drive_cmd = AckermannDriveStamped()
         drive_cmd.header = Header()
         drive = AckermannDrive()
 
         drive.steering_angle = steering_angle
-        drive.speed = 4.0
+        drive.speed = velocity
         #rospy.loginfo("speed: " + str(drive.speed))
+        #rospy.loginfo("distance: " + str(d))
         #rospy.loginfo("steering angle: " + str(drive.steering_angle))
         drive_cmd.drive = drive
-        rospy.logwarn(drive.steering_angle)
+        #################################
+
+        # YOUR CODE HERE
+        # Use relative position and your control law to set drive_cmd
+
+        #################################
+
         self.drive_pub.publish(drive_cmd)
         self.error_publisher()
 

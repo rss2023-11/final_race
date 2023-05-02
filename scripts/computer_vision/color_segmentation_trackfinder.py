@@ -35,7 +35,7 @@ def cd_color_segmentation(img):
 	########## YOUR CODE STARTS HERE ##########
     
 	# only keep tracks visible
-	non_track_ratio = 0.5 # TODO Needs actual ratio from robot
+	non_track_ratio = 0.45 # TODO Needs actual ratio from robot
 	height=len(img)
 	width=len(img[0])
 	cv2.rectangle(img, (0, 0), (width, int(height * non_track_ratio)), (0, 0, 0), -1)

@@ -24,8 +24,10 @@ class ParkingController():
         self.error_pub = rospy.Publisher("/parking_error",
             ParkingError, queue_size=10)
 
-        self.parking_distance = float(rospy.get_param("~parking_distance")) # meters; try playing with this number!
-        self.MAX_VELOCITY = 1
+        self.parking_distance = float(rospy.get_param("~parking_distance", 0)) # meters; try playing with this number!
+        self.kp = rospy.get_param("~kd", 0.25)
+        self.kd = rospy.get_param("~kp", 0.5)
+        self.prev_error = 0
         self.relative_x = 0
         self.relative_y = 0
         self.am_moving_backwards = True
@@ -37,10 +39,11 @@ class ParkingController():
 
         # notes on coordinate system: 
         relative_angle = math.atan2(self.relative_y, self.relative_x)
+        de = self.relative_y-self.prev_error
+        self.prev_error = self.relative_y
 
-
-        steering_amount = min(0.10, abs(relative_angle/2))
-        steering_angle = steering_amount if self.relative_y > 0 else -steering_amount
+        steering_amount = min(0.18, abs(relative_angle/2)) 
+        steering_angle = steering_amount* self.relative_y * self.kp - self.kd * de
        #  rospy.logwarn(steering_amount)
 
         drive_cmd = AckermannDriveStamped()
@@ -53,8 +56,9 @@ class ParkingController():
         #rospy.loginfo("steering angle: " + str(drive.steering_angle))
         drive_cmd.drive = drive
         rospy.logwarn(drive.steering_angle)
-        self.drive_pub.publish(drive_cmd)
-        self.error_publisher()
+        if abs(drive.steering_angle) < 0.3:
+            self.drive_pub.publish(drive_cmd)
+        # self.error_publisher()
 
     def error_publisher(self):
         """
@@ -64,11 +68,11 @@ class ParkingController():
         error_msg = ParkingError()
 
         #################################
-        scaling=(math.sqrt(self.relative_x**2 + self.relative_y**2)-self.parking_distance)/(math.sqrt(self.relative_x**2 + self.relative_y**2))
+        # scaling=(math.sqrt(self.relative_x**2 + self.relative_y**2)-self.parking_distance)/(math.sqrt(self.relative_x**2 + self.relative_y**2))
+        scaling = 1
 
-
-        error_msg.x_error = self.relative_x*scaling
-        error_msg.y_error = self.relative_y*scaling
+        # error_msg.x_error = self.relative_x*scaling
+        # error_msg.y_error = self.relative_y*scaling
         error_msg.distance_error = math.sqrt(self.relative_x**2 + self.relative_y**2)*scaling
 
         #################################

@@ -108,13 +108,13 @@ def cd_color_segmentation(img):
 					dots2.append((x2,y2))
 					cv2.line(img,(x1,y1), (x2,y2),(0,255,0),2)
 	
-	default_turn = width/10
+	default_turn = int(width/10)
 	if not line1 and not line2:
 		rospy.logwarn("NOT IN BETWEEN TRACKS")
 		return None
-	elif not line1 and line2: #only see right line, gotta go left
+	elif not line1 or len(line1)/len(line2)<0.2: #only see right line, gotta go left
 		return (int(width/2) - default_turn, int(height/2))
-	elif not line2 and line1: #only see left line, gotta go right
+	elif not line2 or len(line2)/len(line1)<0.2: #only see left line, gotta go right
 		return (int(width/2) + default_turn, int(height/2))
 
 	rho1 = np.median([x[0] for x in line1])

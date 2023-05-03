@@ -35,15 +35,16 @@ def cd_color_segmentation(img):
 	########## YOUR CODE STARTS HERE ##########
     
 	# only keep tracks visible
-	non_track_ratio = 0.45 # TODO Needs actual ratio from robot
+	non_track_ratio = 0.43 # TODO Needs actual ratio from robot
 	height=len(img)
 	width=len(img[0])
 	cv2.rectangle(img, (0, 0), (width, int(height * non_track_ratio)), (0, 0, 0), -1)
+	cv2.rectangle(img, (0, int(height * 0.7)), (width, height), (0, 0, 0), -1)
 	hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 	# image_print(hsv)
 
 	# lower bound and upper bound for white color
-	sensitivity = 80
+	sensitivity = 90
 	lower_bound = np.array([0,0,255-sensitivity])
 	upper_bound = np.array([255,sensitivity,255])
 
@@ -75,7 +76,7 @@ def cd_color_segmentation(img):
 	# minLineLength: The minimum number of points that can form a line. Lines with less than this number of points are disregarded.
 	# maxLineGap: The maximum gap between two points to be considered in the same line.
 
-	lines = cv2.HoughLinesP(mask, 1, np.pi / 180, 50, 10, 20)
+	lines = cv2.HoughLinesP(mask, 1, np.pi / 180, 50, 5, 20)
 			# cv2.HoughLinesP(E,Rres,Thetares,Threshold,minLineLength,maxLineGap)
 	dots1 = []
 	dots2 = []

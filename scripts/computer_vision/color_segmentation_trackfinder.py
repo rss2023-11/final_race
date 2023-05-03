@@ -39,12 +39,12 @@ def cd_color_segmentation(img):
 	height=len(img)
 	width=len(img[0])
 	cv2.rectangle(img, (0, 0), (width, int(height * non_track_ratio)), (0, 0, 0), -1)
-	cv2.rectangle(img, (0, int(height * 0.7)), (width, height), (0, 0, 0), -1)
+	# cv2.rectangle(img, (0, int(height * 0.7)), (width, height), (0, 0, 0), -1)
 	hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 	# image_print(hsv)
 
 	# lower bound and upper bound for white color
-	sensitivity = 90
+	sensitivity = 80
 	lower_bound = np.array([0,0,255-sensitivity])
 	upper_bound = np.array([255,sensitivity,255])
 
@@ -109,13 +109,13 @@ def cd_color_segmentation(img):
 					dots2.append((x2,y2))
 					cv2.line(img,(x1,y1), (x2,y2),(0,255,0),2)
 	
-	default_turn = int(width/10)
+	default_turn = int(width/3)
 	if not line1 and not line2:
 		rospy.logwarn("NOT IN BETWEEN TRACKS")
 		return None
-	elif not line1 or len(line1)/len(line2)<0.2: #only see right line, gotta go left
+	elif not line1: #only see right line, gotta go left
 		return (int(width/2) - default_turn, int(height/2))
-	elif not line2 or len(line2)/len(line1)<0.2: #only see left line, gotta go right
+	elif not line2: #only see left line, gotta go right
 		return (int(width/2) + default_turn, int(height/2))
 
 	rho1 = np.median([x[0] for x in line1])
@@ -151,13 +151,13 @@ def cd_color_segmentation(img):
 # file = ".\johnson\IMG_20230426_170554291.jpg"
 # file = ".\johnson\IMG_20230426_170926916.jpg"
 # file = ".\johnson\IMG_20230426_170637041.jpg" # side straight
-# file = ".\johnson\IMG_20230426_171050506.jpg" #curve
-# image = cv2.imread(file)
-# if image is None:
-  #    print("Check file path")
+file = ".\johnson\IMG_20230426_171050506.jpg" #curve
+#image = cv2.imread("final_race/scripts/computer_vision/johnson/IMG_20230426_171054230.jpg")
+#if image is None:
+ #    print("Check file path")
     
 # for smaller visualization
 # image = cv2.pyrDown(image)
 
-# print(image)
-# cd_color_segmentation(image)
+#print(image)
+#cd_color_segmentation(image)

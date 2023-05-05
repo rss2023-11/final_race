@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import rospy
 
 #################### X-Y CONVENTIONS #########################
 # 0,0  X  > > > > >
@@ -53,7 +54,7 @@ def cd_color_segmentation(img):
 	# image_print(mask)
 
 	#define kernel size  
-	kernel = np.ones((4,4),np.uint8)
+	kernel = np.ones((2,2),np.uint8)
 
 	# Remove unnecessary noise from mask
 
@@ -92,8 +93,8 @@ def cd_color_segmentation(img):
 			dist = (dx**2+dy**2)**.5
 			if dx!=0 and dy!=0 and dist>thres_dist and abs(1-abs((dy/dx))) < 5 and abs(1-abs((dx/dy))) < 5: # this is a random tan(theta) threshold lol
 				# calculate rho theta of this pair
-				m = dy / dx
-				theta = np.arctan(m)
+				m = dy / (1.0 * dx)
+				theta = np.arctan2(dy, dx)
 				rho = x1 * np.cos(theta) + y1 * np.sin(theta)
 				thresholded_lines.append((rho,theta))
 				
@@ -123,9 +124,30 @@ def cd_color_segmentation(img):
 	rho2 = np.median([x[0] for x in line2]) 				
 	theta2 = np.median([x[1] for x in line2]) 
 	two_lines = [(theta1, rho1), (theta2, rho2)]
-	print(two_lines)
+	print("TWO LINES ARE: " + str(two_lines))
 		# # Maintain a simples lookup list for points
 		# lines_list.append([(x1,y1),(x2,y2)])
+
+
+	# Calculate the angle bisector line Ax + By + C = 0
+	A1, B1, C1 = np.cos(theta1), np.sin(theta1), -rho1
+	A2, B2, C2 = np.cos(theta2), np.sin(theta2), -rho2
+	A, B, C = A1 - A2, B1 - B2, C1 - C2
+
+	# Second line is the horizontal line y = int(height * non_track_ratio).
+	# Find the intersection point:
+	y = int(height * non_track_ratio)
+	if abs(A) < 0.001:
+		rospy.logwarn("Line found is horizontal")
+		return None
+	
+	x = (-C - B * y) / A
+	#goal = (int(x), y)
+	#rospy.logwarn("GOAL IS" + str(goal))
+	#cv2.circle(img, goal, 10, (255, 0, 255), 3)
+	#return goal	
+	# Given this line, find the point along the angle bisector a fixed distance ahead (10px)
+
 	dot1 = dots1[0]
 	dot2 = dots2[0]
 

@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+# import rospy
+import scipy
 
 #################### X-Y CONVENTIONS #########################
 # 0,0  X  > > > > >
@@ -39,12 +41,12 @@ def cd_color_segmentation(img):
 	height=len(img)
 	width=len(img[0])
 	cv2.rectangle(img, (0, 0), (width, int(height * non_track_ratio)), (0, 0, 0), -1)
-	cv2.rectangle(img, (0, int(height * 0.7)), (width, height), (0, 0, 0), -1)
+	# cv2.rectangle(img, (0, int(height * 0.7)), (width, height), (0, 0, 0), -1)
 	hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 	# image_print(hsv)
 
 	# lower bound and upper bound for white color
-	sensitivity = 90
+	sensitivity = 80
 	lower_bound = np.array([0,0,255-sensitivity])
 	upper_bound = np.array([255,sensitivity,255])
 
@@ -76,12 +78,15 @@ def cd_color_segmentation(img):
 	# minLineLength: The minimum number of points that can form a line. Lines with less than this number of points are disregarded.
 	# maxLineGap: The maximum gap between two points to be considered in the same line.
 
-	lines = cv2.HoughLinesP(mask, 1, np.pi / 180, 50, 5, 20)
-			# cv2.HoughLinesP(E,Rres,Thetares,Threshold,minLineLength,maxLineGap)
+	lines = cv2.HoughLinesP(mask, 2, np.pi / 400, 50, 5, 20)
+			# cv2.HoughLinesP(E,Rres,Thetares,Threshold,minLineLength,maxLineGap
+
+	
 	dots1 = []
 	dots2 = []
 	# Iterate over segments
     # Draw the lines
+        # rospy.loginfo(lines)
 	if lines is not None:
 		for i in range(0, len(lines)):
 			x1, y1, x2, y2 = lines[i][0]
@@ -90,71 +95,77 @@ def cd_color_segmentation(img):
 			dy = y2-y1
 			thres_dist = 75
 			dist = (dx**2+dy**2)**.5
-			if dx!=0 and dy!=0 and dist>thres_dist and abs(1-abs((dy/dx))) < 5 and abs(1-abs((dx/dy))) < 5: # this is a random tan(theta) threshold lol
+			if dx!=0 and dy!=0 and dist>thres_dist and abs(dy/dx)<3 and abs(dx/dy)<3:
 				# calculate rho theta of this pair
-				m = dy / dx
-				theta = np.arctan(m)
+				m = dy / (1.0 * dx)
+				theta = np.arctan2(dy, dx)
 				rho = x1 * np.cos(theta) + y1 * np.sin(theta)
 				thresholded_lines.append((rho,theta))
 				
 				# separates the line segments into left and right side
 				if m<0:
 					line1.append((rho,theta))
-					dots1.append((x1,y1))
-					dots1.append((x2,y2))
+					dots1.append([x1,y1])
+					dots1.append([x2,y2])
 					cv2.line(img,(x1,y1), (x2,y2),(0,255,0),2)
 				else:
 					line2.append((rho,theta))
-					dots2.append((x1,y1))
-					dots2.append((x2,y2))
+					dots2.append([x1,y1])
+					dots2.append([x2,y2])
 					cv2.line(img,(x1,y1), (x2,y2),(0,255,0),2)
 	
-	default_turn = int(width/10)
+	default_turn = int(width/3)
+	default_y = int(height*non_track_ratio)
 	if not line1 and not line2:
 		rospy.logwarn("NOT IN BETWEEN TRACKS")
 		return None
-	elif not line1 or len(line1)/len(line2)<0.2: #only see right line, gotta go left
-		return (int(width/2) - default_turn, int(height/2))
-	elif not line2 or len(line2)/len(line1)<0.2: #only see left line, gotta go right
-		return (int(width/2) + default_turn, int(height/2))
-
-	rho1 = np.median([x[0] for x in line1])
-	theta1 = np.median([x[1] for x in line1]) 
-	rho2 = np.median([x[0] for x in line2]) 				
-	theta2 = np.median([x[1] for x in line2]) 
-	two_lines = [(theta1, rho1), (theta2, rho2)]
-	print(two_lines)
-		# # Maintain a simples lookup list for points
-		# lines_list.append([(x1,y1),(x2,y2)])
-	dot1 = dots1[0]
-	dot2 = dots2[0]
-
-	for dot in dots1:
-		if dot[0]>dot1[0]:
-			dot1=dot
-	for dot in dots2:
-		if dot[0]<dot2[0]:
-			dot2=dot
-	# dot1 = (max(x[0] for x in dots1), min(x[1] for x in dots1))
-	# dot2 = (min(x[0] for x in dots2), min(x[1] for x in dots2))
-	goal = (int((dot1[0]+dot2[0])/2), int((dot1[1]+dot2[1])/2))
-	# cv2.circle(img, dot1, 5, (255,0,0), 3)
-	# cv2.circle(img, dot2, 5, (255,0,0), 3)
+	elif not line1: #only see right line, gotta go left
+		return (int(width/2) - default_turn, x)
+	elif not line2: #only seie left line, gotta go right
+		return (int(width/2) + default_turn, x)
+	line1x = [x[0] for x in dots1]
+	line1y = [x[1] for x in dots1]
+	line2x = [x[0] for x in dots2]
+	line2y = [x[1] for x in dots2]
+	slope1, intercept1, _,_,_ = scipy.stats.linregress(line1x, line1y)
+	slope2, intercept2, _,_,_ = scipy.stats.linregress(line2x, line2y)
+	def getY(x, m, b):
+		return (x, int(m*x+b))
+	def getX(y, m, b):
+		return (int((y-b)/m), y)
+	cv2.line(img, getY(0, slope1, intercept1), getY(width, slope1, intercept1), (255,0,0), 2)
+	cv2.line(img, getY(0, slope2, intercept2), getY(width, slope2, intercept2), (255,0,0), 2)
+	x = int((getX(default_y, slope1, intercept1)[0] + getX(default_y, slope2, intercept2)[0])/2)
+	goal = (x, default_y)
 	cv2.circle(img, goal, 10, (255, 0, 255), 3)
-
-	# Save the result image
 	cv2.imwrite('detectedLines.png',img)
-
+	print(goal)
 	return goal
+
+	# # Calculate the angle bisector line Ax + By + C = 0
+	# A1, B1, C1 = np.cos(theta1), np.sin(theta1), -rho1
+	# A2, B2, C2 = np.cos(theta2), np.sin(theta2), -rho2
+	# A, B, C = A1 - A2, B1 - B2, C1 - C2
+
+	# # Second line is the horizontal line y = int(height * non_track_ratio).
+	# # Find the intersection point:
+	# y = int(height * non_track_ratio)
+	# if abs(A) < 0.001:
+	# 	rospy.logwarn("Line found is horizontal")
+	# 	return None
+	
+	# x = (-C - B * y) / A
+
 
 
 # file = ".\johnson\IMG_20230426_170554291.jpg"
 # file = ".\johnson\IMG_20230426_170926916.jpg"
 # file = ".\johnson\IMG_20230426_170637041.jpg" # side straight
 # file = ".\johnson\IMG_20230426_171050506.jpg" #curve
+# image = cv2.imread("final_race/scripts/computer_vision/johnson/IMG_20230426_171054230.jpg")
 # image = cv2.imread(file)
 # if image is None:
-  #    print("Check file path")
+#     print("Check file path")
     
 # for smaller visualization
 # image = cv2.pyrDown(image)

@@ -25,8 +25,8 @@ class ParkingController():
             ParkingError, queue_size=10)
 
         self.parking_distance = float(rospy.get_param("~parking_distance", 0)) # meters; try playing with this number!
-        self.kp = rospy.get_param("~kd", 0.25)
-        self.kd = rospy.get_param("~kp", 0.5)
+        self.kp = 0.2
+        self.kd = 0
         self.prev_error = 0
         self.relative_x = 0
         self.relative_y = 0
@@ -36,15 +36,28 @@ class ParkingController():
     def relative_cone_callback(self, msg):
         self.relative_x = msg.x_pos
         self.relative_y = msg.y_pos
-
+        rospy.logwarn(msg)
         # notes on coordinate system: 
         relative_angle = math.atan2(self.relative_y, self.relative_x)
         de = self.relative_y-self.prev_error
         self.prev_error = self.relative_y
 
+        # rospy.logwarn(self.kd)
         steering_amount = min(0.18, abs(relative_angle/2)) 
-        steering_angle = steering_amount* self.relative_y * self.kp - self.kd * de
-       #  rospy.logwarn(steering_amount)
+        if abs(self.relative_y) > 1:
+            # rospy.logwarn(self.relative_y)
+            if self.relative_y >0:
+             #    rospy.logwarn(self.relative_y)
+                direction = 1 
+                rospy.logwarn("TURNING LEFT")
+            else:
+                direction = -1
+               #  rospy.logwarn(self.relative_y)
+                rospy.logwarn("TURNING RIGHT")
+            steering_angle = direction* self.kp + self.kd * de
+        else:
+            steering_angle = self.relative_y * self.kp + self.kd * de
+       #  rospy.logwarn(isteering_amount)
 
         drive_cmd = AckermannDriveStamped()
         drive_cmd.header = Header()

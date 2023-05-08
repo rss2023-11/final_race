@@ -8,7 +8,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point #geometry_msgs not in CMake file
-from final_race.msg import ConeLocationPixel
+from final_race.msg import ConeLocationPixel, ConeLocation
 
 # import your color segmentation algorithm; call this function in ros_image_callback!
 from computer_vision.color_segmentation_trackfinder import cd_color_segmentation
@@ -25,7 +25,9 @@ class ConeDetector():
         self.LineFollower = False
 
         # Subscribe to ZED camera RGB frames
-        self.cone_pub = rospy.Publisher("/relative_cone_px", ConeLocationPixel, queue_size=10)
+        
+        # self.cone_pub = rospy.Publisher("/relative_cone_px", ConeLocationPixel, queue_size=10)
+        self.cone_pub = rospy.Publisher("/relative_cone", ConeLocation, queue_size=10)
         self.debug_pub = rospy.Publisher("/cone_debug_img", Image, queue_size=10)
         self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
@@ -45,10 +47,15 @@ class ConeDetector():
         # goal = (int(len(image[0])/2),int(len(image)/2))
         goal = cd_color_segmentation(image)
         if goal!=None: # sanity check 
-            center=ConeLocationPixel()
-            center.v=goal[1]
-            center.u=goal[0]
-            
+            # center=ConeLocationPixel()
+            # center.v=goal[1]
+            # center.u=goal[0]
+            print((len(image[0]), len(image)))
+            print(goal)
+            center = ConeLocation()
+            center.x_pos = 1
+            # -1 for left edge of cam pic, 1 for right edge of cam pic
+            center.y_pos = -1.0*(goal[0]-(len(image[0])/2))/(len(image[0])/2*1.0)
             # image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
             non_track_ratio = 0.5
             height=len(image)

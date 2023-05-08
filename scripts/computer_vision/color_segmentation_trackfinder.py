@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
-# import rospy
 import scipy
+import rospy
 
 #################### X-Y CONVENTIONS #########################
 # 0,0  X  > > > > >
@@ -55,7 +55,7 @@ def cd_color_segmentation(img):
 	# image_print(mask)
 
 	#define kernel size  
-	kernel = np.ones((4,4),np.uint8)
+	kernel = np.ones((2,2),np.uint8)
 
 	# Remove unnecessary noise from mask
 
@@ -170,5 +170,5 @@ def cd_color_segmentation(img):
 # for smaller visualization
 # image = cv2.pyrDown(image)
 
-# print(image)
-# cd_color_segmentation(image)
+#print(image)
+#cd_color_segmentation(image)

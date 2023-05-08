@@ -25,8 +25,13 @@ class ParkingController():
             ParkingError, queue_size=10)
 
         self.parking_distance = float(rospy.get_param("~parking_distance", 0)) # meters; try playing with this number!
+<<<<<<< HEAD
         self.kp = 0.2
         self.kd = 0
+=======
+        self.kp = 0.15
+        self.kd = 0.5
+>>>>>>> 8fa07e781ff84bf5c78a41dde4851ac1fbba6222
         self.prev_error = 0
         self.relative_x = 0
         self.relative_y = 0
@@ -34,30 +39,53 @@ class ParkingController():
         
 
     def relative_cone_callback(self, msg):
+<<<<<<< HEAD
         self.relative_x = msg.x_pos
         self.relative_y = msg.y_pos
         rospy.logwarn(msg)
+=======
+        self.relative_x = msg.y_pos
+        self.relative_y = msg.x_pos
+        rospy.logwarn((self.relative_x, self.relative_y))
+>>>>>>> 8fa07e781ff84bf5c78a41dde4851ac1fbba6222
         # notes on coordinate system: 
         relative_angle = math.atan2(self.relative_y, self.relative_x)
         de = self.relative_y-self.prev_error
         self.prev_error = self.relative_y
 
+<<<<<<< HEAD
         # rospy.logwarn(self.kd)
         steering_amount = min(0.18, abs(relative_angle/2)) 
         if abs(self.relative_y) > 1:
             # rospy.logwarn(self.relative_y)
             if self.relative_y >0:
              #    rospy.logwarn(self.relative_y)
+=======
+        rospy.logwarn(self.kd)
+        steering_amount = min(0.18, abs(relative_angle/2)) 
+        if abs(self.relative_y) > 1:
+            rospy.logwarn(self.relative_y)
+            if self.relative_y >0:
+                rospy.logwarn(self.relative_y)
+>>>>>>> 8fa07e781ff84bf5c78a41dde4851ac1fbba6222
                 direction = 1 
                 rospy.logwarn("TURNING LEFT")
             else:
                 direction = -1
+<<<<<<< HEAD
                #  rospy.logwarn(self.relative_y)
+=======
+                rospy.logwarn(self.relative_y)
+>>>>>>> 8fa07e781ff84bf5c78a41dde4851ac1fbba6222
                 rospy.logwarn("TURNING RIGHT")
             steering_angle = direction* self.kp + self.kd * de
         else:
             steering_angle = self.relative_y * self.kp + self.kd * de
+<<<<<<< HEAD
        #  rospy.logwarn(isteering_amount)
+=======
+       #  rospy.logwarn(steering_amount)
+>>>>>>> 8fa07e781ff84bf5c78a41dde4851ac1fbba6222
 
         drive_cmd = AckermannDriveStamped()
         drive_cmd.header = Header()

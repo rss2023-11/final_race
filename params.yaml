@@ -3,4 +3,4 @@ drive_topic: '/vesc/ackermann_cmd_mux/input/navigation'
 safety_topic: '/vesc/low_level/ackermann_cmd_mux/input/safety'
 stopping_scale: 0.5
 kp: 0.25
-kd: 0.5
+kd: 0

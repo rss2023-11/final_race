@@ -66,7 +66,7 @@ class ConeDetector():
 
             bounding_box_img=self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(bounding_box_img)
-            
+            print("publishing goal") 
             self.cone_pub.publish(center)
             self.debug_pub.publish(bounding_box_img)
             

@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import scipy
+from scipy import stats
 import rospy
 
 #################### X-Y CONVENTIONS #########################
@@ -95,7 +95,7 @@ def cd_color_segmentation(img):
 			dy = y2-y1
 			thres_dist = 75
 			dist = (dx**2+dy**2)**.5
-			if dx!=0 and dy!=0 and dist>thres_dist and abs(dy/dx)<3 and abs(dx/dy)<3:
+			if dx!=0 and dy!=0 and dist>thres_dist and abs(dy/dx)<5 and abs(dx/dy)<5:
 				# calculate rho theta of this pair
 				m = dy / (1.0 * dx)
 				theta = np.arctan2(dy, dx)
@@ -115,20 +115,20 @@ def cd_color_segmentation(img):
 					cv2.line(img,(x1,y1), (x2,y2),(0,255,0),2)
 	
 	default_turn = int(width/3)
-	default_y = int(height*non_track_ratio)
+	default_y = int(height*non_track_ratio+70)
 	if not line1 and not line2:
 		rospy.logwarn("NOT IN BETWEEN TRACKS")
 		return None
 	elif not line1: #only see right line, gotta go left
-		return (int(width/2) - default_turn, x)
+		return (int(width/2) - default_turn, default_y)
 	elif not line2: #only seie left line, gotta go right
-		return (int(width/2) + default_turn, x)
+		return (int(width/2) + default_turn, default_y)
 	line1x = [x[0] for x in dots1]
 	line1y = [x[1] for x in dots1]
 	line2x = [x[0] for x in dots2]
 	line2y = [x[1] for x in dots2]
-	slope1, intercept1, _,_,_ = scipy.stats.linregress(line1x, line1y)
-	slope2, intercept2, _,_,_ = scipy.stats.linregress(line2x, line2y)
+	slope1, intercept1, _,_,_ = stats.linregress(line1x, line1y)
+	slope2, intercept2, _,_,_ = stats.linregress(line2x, line2y)
 	def getY(x, m, b):
 		return (x, int(m*x+b))
 	def getX(y, m, b):

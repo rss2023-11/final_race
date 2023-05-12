@@ -10,10 +10,7 @@
     <param name="parking_distance" value="0.0" />
   </node>
 
-  <!-- <node pkg="final_race" name="cone_detector" type="cone_detector.py" output="screen">
-  </node> -->
-
-  <node pkg="final_race" name="cone_detector" type="line_detector.py" output="screen">
+  <node pkg="final_race" name="line_detector" type="line_detector.py" output="screen">
   </node>
 
   <node pkg="final_race" name="homography_transformer" type="homography_transformer.py" output="screen">

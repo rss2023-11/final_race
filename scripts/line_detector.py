@@ -8,7 +8,7 @@ from cv_bridge import CvBridge, CvBridgeError
 
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point #geometry_msgs not in CMake file
-from final_race.msg import ConeLocationPixel
+from final_race.msg import ConeLocationPixel, ConeLocation
 
 # import your color segmentation algorithm; call this function in ros_image_callback!
 from computer_vision.color_segmentation_trackfinder import cd_color_segmentation
@@ -21,13 +21,13 @@ class ConeDetector():
     Publishes to: /relative_cone_px (ConeLocationPixel) : the coordinates of the cone in the image frame (units are pixels).
     """
     def __init__(self):
-        # toggle line follower vs cone parker
-        self.LineFollower = False
 
         # Subscribe to ZED camera RGB frames
+        self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
+
+	# Publish pixel location of goal
         self.cone_pub = rospy.Publisher("/relative_cone_px", ConeLocationPixel, queue_size=10)
         self.debug_pub = rospy.Publisher("/cone_debug_img", Image, queue_size=10)
-        self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
 
     def image_callback(self, image_msg):
@@ -37,19 +37,27 @@ class ConeDetector():
         # publish this pixel (u, v) to the /relative_cone_px topic; the homography transformer will
         # convert it to the car frame.
 
-        #################################
         
         bridge = CvBridge()
         image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
         
         # goal = (int(len(image[0])/2),int(len(image)/2))
         goal = cd_color_segmentation(image)
-        if goal!=None: # sanity check 
-            center=ConeLocationPixel()
-            center.v=goal[1]
-            center.u=goal[0]
-            
+        if goal is not None: # sanity check 
+            print((len(image[0]), len(image)))
+            print(goal)
+	    pixel_goal = ConeLocationPixel()
+	    pixel_goal.u = goal[0]
+	    pixel_goal.v = goal[1]
+	    self.cone_pub.publish(pixel_goal)
+
+	    # OLD, NON HOMOGRAPHY CENTER FINDING
+	    #center.x_pos = 1
+            # -1 for left edge of cam pic, 1 for right edge of cam pic
+	    #center.y_pos = -1.0*(goal[0]-(len(image[0])/2))/(len(image[0])/2*1.0)
             # image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
+
+            # use homography transform to convert goal pixel (x, y) to real-life goal (xi, yi)
             non_track_ratio = 0.5
             height=len(image)
             width=len(image[0])
@@ -59,8 +67,8 @@ class ConeDetector():
 
             bounding_box_img=self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(bounding_box_img)
-            
-            self.cone_pub.publish(center)
+	    #print("publishing goal") 
+	    #self.cone_pub.publish(center)
             self.debug_pub.publish(bounding_box_img)
             
             #################################

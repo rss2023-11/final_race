@@ -17,64 +17,33 @@ from visual_servoing.msg import ConeLocation, ConeLocationPixel
 
 # PTS_IMAGE_PLANE units are in pixels
 # see README.md for coordinate frame description
-
-######################################################
-## DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
 PTS_IMAGE_PLANE = [
-    [395, 331],
-    [309, 334], 
-    [291, 310],
-    [400, 306],
-    [340, 289],
-    [425, 272],
-    [379, 277],
-    [297, 278],
-    [243, 274],
-    [334, 270],
+    [327, 215],
+    [320, 194],
+    [317, 189],
+    [317, 185],
+    [558, 202],
+    [125, 211],
+    [64, 238],
+    [557, 227],
+    [511, 187],
+    [143, 193]
 ]
-# [[337,233],
-#                    [213, 274],
-#                    [259, 320],
-#                    [435, 257],
-#                    [566, 299],
-#                    [495, 232],
-#                    [346, 189],
-#                    [609, 231],
-#                    [93, 246],
-#                    [224, 192],
-#                    [477, 193]]
-######################################################
 
 # PTS_GROUND_PLANE units are in inches
 # car looks along positive x axis with positive y axis to left
-
-######################################################
-## DUMMY POINTS -- ENTER YOUR MEASUREMENTS HERE
 PTS_GROUND_PLANE = [
-    [10, -2],
-    [10, 2],
-    [13, 3],
-    [13, -3],
-    [16, 0],
-    [20, -7],
-    [19, -3],
-    [19, 3],
-    [20, 7],
-    [21, 0],
+    [61, 0],
+    [138, 0],
+    [215, 0],
+    [291, 0],
+    [83, -64],
+    [83, 51],
+    [40, 35],
+    [40, -33],
+    [209, 124],
+    [209, 107],
 ]
-
-# [[43.3071, 3],
-#                     [25.59, 12],
-#                     [16.9291, 7],
-#                     [31.4961, -7],
-#                     [21.2598, -12],
-#                     [18.5039, -20],
-#                     [137, 0],
-#                     [45, -32],
-#                     [27, 34],
-#                     [112, 40],
-#                     [120, -45]]
-######################################################
 
 METERS_PER_INCH = 0.0254
 
@@ -114,7 +83,6 @@ class HomographyTransformer:
         relative_xy_msg = ConeLocation()
         relative_xy_msg.x_pos = x
         relative_xy_msg.y_pos = y
-
         self.cone_pub.publish(relative_xy_msg)
 
 

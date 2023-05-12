@@ -23,10 +23,16 @@ class ConeDetector():
     def __init__(self):
 
         # Subscribe to ZED camera RGB frames
+<<<<<<< HEAD
         self.image_sub = rospy.Subscriber("/zed/zed_node/rgb/image_rect_color", Image, self.image_callback)
 
 	# Publish pixel location of goal
         self.cone_pub = rospy.Publisher("/relative_cone_px", ConeLocationPixel, queue_size=10)
+=======
+        
+        # self.cone_pub = rospy.Publisher("/relative_cone_px", ConeLocationPixel, queue_size=10)
+        self.cone_pub = rospy.Publisher("/relative_cone", ConeLocation, queue_size=10)
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
         self.debug_pub = rospy.Publisher("/cone_debug_img", Image, queue_size=10)
         self.bridge = CvBridge() # Converts between ROS images and OpenCV Images
 
@@ -43,6 +49,7 @@ class ConeDetector():
         
         # goal = (int(len(image[0])/2),int(len(image)/2))
         goal = cd_color_segmentation(image)
+<<<<<<< HEAD
         if goal is not None: # sanity check 
             print((len(image[0]), len(image)))
             print(goal)
@@ -55,6 +62,18 @@ class ConeDetector():
 	    #center.x_pos = 1
             # -1 for left edge of cam pic, 1 for right edge of cam pic
 	    #center.y_pos = -1.0*(goal[0]-(len(image[0])/2))/(len(image[0])/2*1.0)
+=======
+        if goal!=None: # sanity check 
+            # center=ConeLocationPixel()
+            # center.v=goal[1]
+            # center.u=goal[0]
+            print((len(image[0]), len(image)))
+            print(goal)
+            center = ConeLocation()
+            center.x_pos = 1
+            # -1 for left edge of cam pic, 1 for right edge of cam pic
+            center.y_pos = -1.0*(goal[0]-(len(image[0])/2))/(len(image[0])/2*1.0)
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
             # image = self.bridge.imgmsg_to_cv2(image_msg, "bgr8")
 
             # use homography transform to convert goal pixel (x, y) to real-life goal (xi, yi)
@@ -67,8 +86,13 @@ class ConeDetector():
 
             bounding_box_img=self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.debug_pub.publish(bounding_box_img)
+<<<<<<< HEAD
 	    #print("publishing goal") 
 	    #self.cone_pub.publish(center)
+=======
+            print("publishing goal") 
+            self.cone_pub.publish(center)
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
             self.debug_pub.publish(bounding_box_img)
             
             #################################

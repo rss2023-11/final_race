@@ -24,19 +24,29 @@ class ParkingController():
         self.error_pub = rospy.Publisher("/parking_error",
             ParkingError, queue_size=10)
 
+<<<<<<< HEAD
 	self.speed = rospy.get_param("~speed", 3)
 
         self.parking_distance = float(rospy.get_param("~parking_distance", 0))
         self.kp = rospy.get_param("~kp", 0.2)
         self.kd = rospy.get_param("~kd", 1)
 
+=======
+        self.parking_distance = float(rospy.get_param("~parking_distance", 0)) # meters; try playing with this number!
+        self.kp = 0.15
+        self.kd = 1
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
         self.wheelbase_length = 0.35 
         self.prev_error = 0
         self.prev_steering_angle = 0
         self.relative_x = 0
         self.relative_y = 0
         self.am_moving_backwards = True
+<<<<<<< HEAD
        
+=======
+        
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
     def calculate_steering_angle(self, dx, dy):
         # Calculate the steering angle to the target point using Ackermann steering geometry
         alpha = math.atan2(dy, dx)
@@ -49,29 +59,45 @@ class ParkingController():
         self.relative_x = msg.x_pos
         self.relative_y = msg.y_pos
         rospy.logwarn(msg)
+<<<<<<< HEAD
         
         relative_angle = math.atan2(self.relative_y, self.relative_x)
         de = relative_angle - self.prev_error
         self.prev_error = relative_angle
         steering_angle = self.calculate_steering_angle(self.relative_x, self.relative_y)
         steering_angle = self.kp * steering_angle + self.kd * de
+=======
+        # notes on coordinate system: 
+        relative_angle = math.atan2(self.relative_y, self.relative_x)
+        de = relative_angle-self.prev_error
+        self.prev_error = relative_angle
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
 
+        steering_angle = self.calculate_steering_angle(self.relative_x, self.relative_y) * self.kp + self.kd * de
         drive_cmd = AckermannDriveStamped()
         drive_cmd.header = Header()
         drive = AckermannDrive()
         drive.steering_angle = steering_angle
+<<<<<<< HEAD
         drive.speed = self.speed
         drive_cmd.drive = drive
 
+=======
+        drive.speed = 2.0
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
         #rospy.loginfo("speed: " + str(drive.speed))
         #rospy.loginfo("steering angle: " + str(drive.steering_angle))
 
         rospy.logwarn(drive.steering_angle)
+<<<<<<< HEAD
 
         if abs(drive.steering_angle) < 0.15 and abs(self.prev_steering_angle-steering_angle)<0.026:
             # rospy.logwarn("DRIVE COMMAND")
             # rospy.logwarn(drive_cmd)
             self.prev_steering_angle = steering_angle
+=======
+        if abs(drive.steering_angle) < 0.15:
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
             self.drive_pub.publish(drive_cmd)
         # self.error_publisher()
 

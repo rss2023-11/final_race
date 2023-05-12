@@ -142,7 +142,7 @@ def cd_color_segmentation(img):
 	x = int((getX(default_y, slope1, intercept1)[0] + getX(default_y, slope2, intercept2)[0])/2)
 	# goal = (default_x, default_y)
 	goal = (x, default_y)
-        cv2.circle(img, goal, 10, (255, 0, 255), 3)
+  cv2.circle(img, goal, 10, (255, 0, 255), 3)
 	cv2.imwrite('detectedLines.png',img)
 	print(goal)
 	return goal

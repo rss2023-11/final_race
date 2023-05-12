@@ -29,6 +29,10 @@ PTS_IMAGE_PLANE = [
     [511, 187],
     [143, 193]
 ]
+<<<<<<< HEAD
+=======
+######################################################
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
 
 # PTS_GROUND_PLANE units are in inches
 # car looks along positive x axis with positive y axis to left
@@ -44,6 +48,10 @@ PTS_GROUND_PLANE = [
     [209, 124],
     [209, 107],
 ]
+<<<<<<< HEAD
+=======
+######################################################
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
 
 METERS_PER_INCH = 0.0254
 
@@ -83,7 +91,12 @@ class HomographyTransformer:
         relative_xy_msg = ConeLocation()
         relative_xy_msg.x_pos = x
         relative_xy_msg.y_pos = y
+<<<<<<< HEAD
         self.cone_pub.publish(relative_xy_msg)
+=======
+        if x > 0:
+            self.cone_pub.publish(relative_xy_msg)
+>>>>>>> a5d67e42c0618c1ae6f16b29bbf1673ae395c971
 
 
     def transformUvToXy(self, u, v):
